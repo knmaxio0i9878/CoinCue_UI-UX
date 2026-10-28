@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 
-/* ---------- data (same theme and sources as the other pages) ---------- */
+
 const COINS = [
   { id: "bitcoin", sym: "BTC", name: "Bitcoin", sample: 7670000 },
   { id: "ethereum", sym: "ETH", name: "Ethereum", sample: 223000 },
@@ -20,17 +20,12 @@ const TOOLS = [
   { href: "/pricealerts", label: "Price alerts", icon: "M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V11a6 6 0 1 0-12 0v3.2c0 .5-.2 1-.6 1.4L4 17h5m6 0a3 3 0 1 1-6 0" },
 ];
 
-/*
-  Email alerts need a server, because a web page cannot send email by itself.
-  Set ALERT_API to your endpoint and each new alert is POSTed to it as JSON:
-  { id, coinId, symbol, direction, target, channel, email }
-  Leave it empty to keep alerts in this browser only (app alerts still work while the page is open).
-*/
+
 const ALERT_API = "";
 const KEY = "pricealerts-inr-v1";
 const EMAIL_KEY = "pricealerts-email-v1";
 
-/* ---------- helpers ---------- */
+
 let uid = Date.now();
 const nextId = () => ++uid;
 const num = (v) => (isFinite(parseFloat(v)) && parseFloat(v) > 0 ? parseFloat(v) : 0);
@@ -312,7 +307,7 @@ export const PriceAlertTool = () => {
               </Step>
             </form>
 
-            {/* alerts list */}
+
             <section aria-label="Your alerts" className="space-y-3">
               <h2 className="px-1 pt-2 text-xl font-bold tracking-tight">Your alerts</h2>
               {alerts.length === 0 && (

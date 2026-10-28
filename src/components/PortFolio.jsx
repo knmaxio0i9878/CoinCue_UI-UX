@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 
-/* ---------- data ---------- */
+
 const COINS = [
   { id: "bitcoin", sym: "BTC", name: "Bitcoin", sample: 7670000 },
   { id: "ethereum", sym: "ETH", name: "Ethereum", sample: 223000 },
@@ -12,10 +12,10 @@ const COINS = [
   { id: "tether", sym: "USDT", name: "Tether", sample: 88 },
 ];
 
-// Solid colours only (no gradients). Used for avatars, the split bar and the legend.
+
 const COLORS = ["#4F46E5", "#EC4899", "#0D9488", "#F59E0B", "#0EA5E9", "#8B5CF6", "#65A30D", "#EF4444"];
 
-// Navbar = tools 2, 3, 4, 5. Swap <a href> for <Link to> if you use react-router.
+
 const TOOLS = [
   { href: "/portfolio-balance", label: "Portfolio balance", icon: "M4 6h16M4 12h10M4 18h6", desc: "Pick the mix you want in each coin and see the buy or sell amounts needed to reach it, before tax and fees." },
   { href: "/cryptosell", label: "How much to sell", icon: "M12 8c-1.7 0-3 .9-3 2s1.3 2 3 2 3 .9 3 2-1.3 2-3 2m0-8V6m0 12v-2", desc: "Enter the cash you need and see how many coins to sell after estimated fees, with optional country tax estimates." },
@@ -25,7 +25,7 @@ const TOOLS = [
 
 const KEY = "portfolio-inr-v1";
 
-/* ---------- helpers ---------- */
+
 let uid = Date.now();
 const nextId = () => ++uid;
 const num = (v) => (isFinite(parseFloat(v)) && parseFloat(v) > 0 ? parseFloat(v) : 0);
@@ -100,7 +100,7 @@ const Icon = ({ d, className = "h-5 w-5" }) => (
 const inputCls =
   "w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-base text-slate-900 placeholder:text-slate-400 transition focus:border-indigo-600 focus:outline-none focus:ring-4 focus:ring-indigo-600/15";
 
-/* ---------- navbar ---------- */
+
 function Navbar({ isLive }) {
   const [open, setOpen] = useState(false);
   return (
@@ -148,7 +148,7 @@ function Navbar({ isLive }) {
   );
 }
 
-/* ---------- page ---------- */
+
 export default function PortFolio() {
   const [rows, setRows] = useState(loadRows);
   const [pick, setPick] = useState(COINS[2].id);
@@ -188,7 +188,7 @@ export default function PortFolio() {
         </div>
 
         <div className="grid w-full gap-6 lg:grid-cols-[minmax(0,1fr)_420px] xl:grid-cols-[minmax(0,1fr)_480px]">
-          {/* left: coins */}
+          
           <section aria-label="Your coins" className="order-2 space-y-4 lg:order-1">
             {rows.length === 0 && (
               <div className="rounded-2xl border-2 border-dashed border-slate-300 bg-white p-10 text-center text-slate-500">
@@ -235,7 +235,7 @@ export default function PortFolio() {
               </div>
             ))}
 
-            {/* add bar */}
+            
             <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 sm:flex-row sm:items-center sm:p-5">
               <select value={pick} onChange={(e) => setPick(e.target.value)} aria-label="Choose a coin to add" className={inputCls + " sm:max-w-xs"}>
                 {COINS.map((c) => <option key={c.id} value={c.id}>{c.name} ({c.sym})</option>)}
@@ -258,7 +258,7 @@ export default function PortFolio() {
             </p>
           </section>
 
-          {/* right: total */}
+          
           <aside className="order-1 lg:order-2">
             <section aria-live="polite" className="rounded-2xl bg-slate-900 p-6 text-white sm:p-8 lg:sticky lg:top-24">
               <p className="text-sm font-medium text-slate-400">Total portfolio value</p>
@@ -292,7 +292,7 @@ export default function PortFolio() {
           </aside>
         </div>
 
-        {/* other tools */}
+        
         <section className="mt-12 w-full" aria-label="More tools">
           <h2 className="text-xl font-bold tracking-tight">More tools</h2>
           <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

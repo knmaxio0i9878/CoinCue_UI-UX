@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 
-/* ---------- data (same theme and sources as the other pages) ---------- */
+
 const COINS = [
   { id: "bitcoin", sym: "BTC", name: "Bitcoin", sample: 7670000 },
   { id: "ethereum", sym: "ETH", name: "Ethereum", sample: 223000 },
@@ -19,7 +19,7 @@ const TOOLS = [
   { href: "/pricealerts", label: "Price alerts", icon: "M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V11a6 6 0 1 0-12 0v3.2c0 .5-.2 1-.6 1.4L4 17h5m6 0a3 3 0 1 1-6 0" },
 ];
 
-// chart colours: solid, no gradients
+
 const C = { profit: "#10B981", buy: "#F59E0B", move: "#0EA5E9", sell: "#8B5CF6" };
 const KEY = "pricegap-inr-v2";
 
@@ -31,7 +31,7 @@ const DEFAULTS = {
   example: false, touched: false,
 };
 
-/* ---------- helpers ---------- */
+
 const num = (v) => (isFinite(parseFloat(v)) && parseFloat(v) > 0 ? parseFloat(v) : 0);
 const inr = (n, d = 2) => (n < 0 ? "-" : "") + "₹" + Math.abs(isFinite(n) ? n : 0).toLocaleString("en-IN", { maximumFractionDigits: d });
 const pct = (n, d = 2) => (isFinite(n) ? n : 0).toFixed(d) + "%";
@@ -106,7 +106,7 @@ const chipCls = (on) =>
   "rounded-full border px-4 py-1.5 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-600/20 " +
   (on ? "border-indigo-600 bg-indigo-50 text-indigo-700" : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50");
 
-/* ---------- navbar ---------- */
+
 function Navbar({ isLive, active = "/exchangepricegap" }) {
   const [open, setOpen] = useState(false);
   const link = (t, mobile) =>
@@ -175,7 +175,7 @@ const Field = ({ label, hint, children }) => (
   </label>
 );
 
-/* ---------- page ---------- */
+
 export const ExchangePriceGap = () => {
   const [f, setF] = useState(loadForm);
   const { live, isLive } = useLivePrices();
@@ -194,25 +194,25 @@ export const ExchangePriceGap = () => {
   const fillExample = () =>
     setF((s) => ({ ...s, priceA: String(Math.round(market)), priceB: String(Math.round(market * 1.012)), example: true, touched: false }));
 
-  // First visit: show a worked example so the page is never blank. Wait briefly for live prices.
+  
   useEffect(() => {
     if (f.touched || f.priceA || f.priceB) return;
     const t = setTimeout(fillExample, isLive ? 0 : 2500);
     return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, [isLive, f.touched, f.priceA, f.priceB]);
 
   const swap = () =>
     setF((s) => ({ ...s, nameA: s.nameB, priceA: s.priceB, feeA: s.feeB, nameB: s.nameA, priceB: s.priceA, feeB: s.feeA }));
   const startOver = () => setF({ ...DEFAULTS, coinId: f.coinId });
 
-  /* Maths: buy on A, send the coins over, sell on B. */
+  
   const I = num(f.invest);
   const pA = num(f.priceA);
   const pB = num(f.priceB);
   const fA = num(f.feeA) / 100;
   const fB = num(f.feeB) / 100;
-  const T = num(f.transfer); // flat network or withdrawal fee in ₹
+  const T = num(f.transfer); 
   const delay = num(f.delay);
   const swing = num(f.swing);
   const drift = Math.min((swing * delay) / 60, 100) / 100;
@@ -236,7 +236,7 @@ export const ExchangePriceGap = () => {
 
   const shownNet = useCountUp(net);
 
-  /* verdict in plain words */
+  
   let verdict = { chip: "Waiting for numbers", tone: "bg-slate-800 text-slate-300", line: "" };
   if (ready) {
     if (net <= 0) verdict = { chip: "Not worth it", tone: "bg-red-500/20 text-red-200", line: "You would lose money on this trade." };
@@ -293,7 +293,7 @@ export const ExchangePriceGap = () => {
           </p>
         </div>
 
-        {/* how it works */}
+        
         <ol className="mb-8 grid gap-3 md:grid-cols-3" aria-label="How it works">
           {[
             ["Enter the two prices", "Type the price you see for the coin on each exchange."],
@@ -320,7 +320,7 @@ export const ExchangePriceGap = () => {
         )}
 
         <div className="grid w-full gap-6 lg:grid-cols-[minmax(0,1fr)_420px] xl:grid-cols-[minmax(0,1fr)_480px]">
-          {/* left: inputs */}
+          
           <div className="space-y-4">
             <Step n="1" title="What are you trading?">
               <div className="grid gap-4 sm:grid-cols-2">
@@ -495,7 +495,7 @@ export const ExchangePriceGap = () => {
                     </ol>
                   </div>
 
-                  {/* where the gap goes */}
+                  
                   <div className="mt-6 border-t border-slate-800 pt-5">
                     <p className="mb-1 text-sm font-semibold text-slate-200">Where the price difference goes</p>
                     <p className="mb-3 text-sm text-slate-400">The price difference alone is worth {inr(gross)}. Fees take part of it.</p>
@@ -546,7 +546,7 @@ export const ExchangePriceGap = () => {
         </div>
       </main>
 
-      {/* small phones: always show the result */}
+      
       <a href="#result" className="fixed inset-x-3 bottom-3 z-20 flex items-center justify-between rounded-2xl bg-slate-900 px-5 py-3.5 text-white shadow-lg lg:hidden">
         <span className="text-sm text-slate-300">{ready ? "Your result" : "Fill in the prices"}</span>
         <span className="flex items-center gap-2 font-bold tabular-nums">

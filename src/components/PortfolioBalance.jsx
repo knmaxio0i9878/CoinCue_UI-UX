@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 
-/* ---------- data (same theme and sources as the value calculator) ---------- */
+
 const COINS = [
   { id: "bitcoin", sym: "BTC", name: "Bitcoin", sample: 7670000 },
   { id: "ethereum", sym: "ETH", name: "Ethereum", sample: 223000 },
@@ -20,10 +20,10 @@ const TOOLS = [
   { href: "/pricealerts", label: "Price alerts", icon: "M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V11a6 6 0 1 0-12 0v3.2c0 .5-.2 1-.6 1.4L4 17h5m6 0a3 3 0 1 1-6 0" },
 ];
 
-const PORTFOLIO_KEY = "portfolio-inr-v1"; // holdings saved by the value calculator
+const PORTFOLIO_KEY = "portfolio-inr-v1"; 
 const KEY = "balance-inr-v1";
 
-/* ---------- helpers ---------- */
+
 let uid = Date.now();
 const nextId = () => ++uid;
 const num = (v) => (isFinite(parseFloat(v)) && parseFloat(v) > 0 ? parseFloat(v) : 0);
@@ -108,7 +108,7 @@ const Icon = ({ d, className = "h-5 w-5" }) => (
 const inputCls =
   "w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-base text-slate-900 placeholder:text-slate-400 transition focus:border-indigo-600 focus:outline-none focus:ring-4 focus:ring-indigo-600/15";
 
-/* ---------- navbar (same as the value calculator, with an active link) ---------- */
+
 function Navbar({ isLive, active = "/portfolio-balance" }) {
   const [open, setOpen] = useState(false);
   const link = (t, mobile) =>
@@ -193,7 +193,7 @@ export const PortfolioBalance = () => {
   const targetSum = rows.reduce((s, r) => s + num(r.target), 0);
   const targetOk = Math.abs(targetSum - 100) < 0.01;
 
-  // amount to move per coin (positive = buy, negative = sell)
+  
   const moves = rows.map((r, i) => (targetOk ? (base * num(r.target)) / 100 - values[i] : 0));
   const buyTotal = moves.reduce((s, m) => s + (m > 0 ? m : 0), 0);
   const sellTotal = moves.reduce((s, m) => s + (m < 0 ? -m : 0), 0);
@@ -236,9 +236,9 @@ export const PortfolioBalance = () => {
         </div>
 
         <div className="grid w-full gap-6 lg:grid-cols-[minmax(0,1fr)_420px] xl:grid-cols-[minmax(0,1fr)_480px]">
-          {/* left: holdings and targets */}
+          
           <section aria-label="Your coins" className="order-2 space-y-4 lg:order-1">
-            {/* quick actions */}
+          
             <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
               <div className="flex flex-wrap items-center gap-2.5">
                 <span className={"inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-sm font-semibold " + statusCls}>
