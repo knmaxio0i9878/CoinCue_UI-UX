@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
+import emailjs from "@emailjs/browser";
 
-
+/* ---------- data (same theme and sources as the other pages) ---------- */
 const COINS = [
   { id: "bitcoin", sym: "BTC", name: "Bitcoin", sample: 7670000 },
   { id: "ethereum", sym: "ETH", name: "Ethereum", sample: 223000 },
@@ -20,12 +21,20 @@ const TOOLS = [
   { href: "/pricealerts", label: "Price alerts", icon: "M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V11a6 6 0 1 0-12 0v3.2c0 .5-.2 1-.6 1.4L4 17h5m6 0a3 3 0 1 1-6 0" },
 ];
 
+// EmailJS settings. Create them in your EmailJS dashboard and keep them in your .env file.
+const EMAILJS_SERVICE = "service_nhtp8wl";
+const EMAILJS_TEMPLATE = "template_0eg8f2o";
+const EMAILJS_KEY = "R1vA3QyPZRjMZIdXl";
+const emailReady = Boolean(EMAILJS_SERVICE && EMAILJS_TEMPLATE && EMAILJS_KEY);
 
-const ALERT_API = "";
+// Sends one email through EmailJS. The template reads these variables:
+// to_email, subject, coin, target_price, current_price, message
+const sendEmail = (params) =>
+  emailjs.send(EMAILJS_SERVICE, EMAILJS_TEMPLATE, params, { publicKey: EMAILJS_KEY });
 const KEY = "pricealerts-inr-v1";
 const EMAIL_KEY = "pricealerts-email-v1";
 
-
+/* ---------- helpers ---------- */
 let uid = Date.now();
 const nextId = () => ++uid;
 const num = (v) => (isFinite(parseFloat(v)) && parseFloat(v) > 0 ? parseFloat(v) : 0);
@@ -38,7 +47,7 @@ const load = (k, fallback) => {
   try {
     const s = JSON.parse(localStorage.getItem(k));
     if (s !== null && s !== undefined) return s;
-  } catch {}
+  } catch { }
   return fallback;
 };
 
@@ -155,11 +164,13 @@ export const PriceAlertTool = () => {
   const [alerts, setAlerts] = useState(() => load(KEY, []));
   const [form, setForm] = useState({ coinId: "bitcoin", target: "", channel: "app", email: load(EMAIL_KEY, "") });
   const [error, setError] = useState("");
+  const [sending, setSending] = useState(false);
+  const [notice, setNotice] = useState(null); // { ok: boolean, text: string }
   const [perm, setPerm] = useState(typeof Notification !== "undefined" ? Notification.permission : "unsupported");
   const set = (k, v) => { setForm((s) => ({ ...s, [k]: v })); setError(""); };
 
-  useEffect(() => { try { localStorage.setItem(KEY, JSON.stringify(alerts)); } catch {} }, [alerts]);
-  useEffect(() => { try { localStorage.setItem(EMAIL_KEY, JSON.stringify(form.email)); } catch {} }, [form.email]);
+  useEffect(() => { try { localStorage.setItem(KEY, JSON.stringify(alerts)); } catch { } }, [alerts]);
+  useEffect(() => { try { localStorage.setItem(EMAIL_KEY, JSON.stringify(form.email)); } catch { } }, [form.email]);
 
   const coin = COINS.find((c) => c.id === form.coinId) ?? COINS[0];
   const priceNow = (id) => live[id] ?? COINS.find((c) => c.id === id)?.sample ?? 0;
@@ -181,14 +192,24 @@ export const PriceAlertTool = () => {
       if (fired.current.has(a.id)) return;
       fired.current.add(a.id);
       if ((a.channel === "app" || a.channel === "both") && typeof Notification !== "undefined" && Notification.permission === "granted") {
-        try { new Notification(`${a.symbol} hit ${inr(a.target, 0)}`, { body: `${a.symbol} is now ${inr(live[a.coinId], 0)}.` }); } catch {}
+        try { new Notification(`${a.symbol} hit ${inr(a.target, 0)}`, { body: `${a.symbol} is now ${inr(live[a.coinId], 0)}.` }); } catch { }
+      }
+      if ((a.channel === "email" || a.channel === "both") && a.email && emailReady) {
+        sendEmail({
+          to_email: a.email,
+          subject: `${a.symbol} reached ${inr(a.target, 0)}`,
+          coin: a.name,
+          target_price: inr(a.target, 2),
+          current_price: inr(live[a.coinId], 2),
+          message: `Good news! ${a.name} ${a.direction === "above" ? "rose to" : "fell to"} ${inr(live[a.coinId], 2)}, which reaches your target of ${inr(a.target, 2)}.`,
+        }).catch(() => { });
       }
     });
   }, [live, isLive, alerts]);
 
   const askPermission = async () => {
     if (typeof Notification === "undefined") return;
-    try { setPerm(await Notification.requestPermission()); } catch {}
+    try { setPerm(await Notification.requestPermission()); } catch { }
   };
 
   const addAlert = async (e) => {
@@ -204,11 +225,33 @@ export const PriceAlertTool = () => {
     setAlerts((as) => [a, ...as]);
     set("target", "");
     if (form.channel !== "email" && perm === "default") askPermission();
-    if (ALERT_API) {
+    setNotice(null);
+    if (needsEmail) {
+      if (!emailReady) {
+        setNotice({ ok: false, text: "Your alert is saved, but email is not set up yet. Add your EmailJS keys to the .env file and restart the app." });
+        return;
+      }
+      setSending(true);
       try {
-        await fetch(ALERT_API, { method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id: a.id, coinId: a.coinId, symbol: a.symbol, direction: a.direction, target: a.target, channel: a.channel, email: a.email }) });
-      } catch {}
+        await sendEmail({
+          to_email: a.email,
+          subject: `Alert set: ${a.symbol} ${a.direction === "above" ? "above" : "below"} ${inr(a.target, 0)}`,
+          coin: a.name,
+          target_price: inr(a.target, 2),
+          current_price: inr(current, 2),
+          message: `Your alert is on. We will email you when ${a.name} ${a.direction === "above" ? "rises to" : "falls to"} ${inr(a.target, 2)}. It costs ${inr(current, 2)} right now.`,
+        });
+        setNotice({ ok: true, text: `Alert created. A confirmation email was sent to ${a.email}.` });
+      } catch (err) {
+        console.error("EmailJS error:", err);
+        setNotice({
+          ok: false,
+          text: `Your alert is saved, but the email could not be sent. (${err?.status ?? ""} ${err?.text ?? err?.message ?? ""})`,
+        });
+      }
+      setSending(false);
+    } else {
+      setNotice({ ok: true, text: "Alert created. We will notify you on this device." });
     }
   };
 
@@ -292,22 +335,28 @@ export const PriceAlertTool = () => {
                     <Field label="Your email address">
                       <input className={inputCls} type="email" autoComplete="email" value={form.email} onChange={(e) => set("email", e.target.value)} placeholder="you@example.com" />
                     </Field>
-                    {!ALERT_API && (
-                      <p className="mt-2 text-sm text-amber-700">Email sending is not connected yet, so this alert is saved but no email will go out.</p>
+                    {!emailReady && (
+                      <p className="mt-2 text-sm text-amber-700">Email is not set up yet. Add your EmailJS keys to the .env file to send emails.</p>
                     )}
                   </div>
                 )}
 
                 {error && <p role="alert" className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-700">{error}</p>}
 
-                <button type="submit"
-                  className="mt-5 w-full rounded-xl bg-indigo-600 px-5 py-3 text-base font-semibold text-white transition hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-600/30 sm:w-auto">
-                  Create alert
+                <button type="submit" disabled={sending}
+                  className="mt-5 w-full rounded-xl bg-indigo-600 px-5 py-3 text-base font-semibold text-white transition hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-600/30 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto">
+                  {sending ? "Sending email..." : "Create alert"}
                 </button>
+
+                {notice && (
+                  <p role="status" className={"mt-4 rounded-xl px-4 py-3 text-sm font-medium " + (notice.ok ? "bg-emerald-50 text-emerald-800" : "bg-amber-50 text-amber-900")}>
+                    {notice.text}
+                  </p>
+                )}
               </Step>
             </form>
 
-
+            {/* alerts list */}
             <section aria-label="Your alerts" className="space-y-3">
               <h2 className="px-1 pt-2 text-xl font-bold tracking-tight">Your alerts</h2>
               {alerts.length === 0 && (
